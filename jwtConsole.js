@@ -1,15 +1,16 @@
-const docusign = require("docusign-esign");
-const signingViaEmail = require("../lib/eSignature/examples/signingViaEmail");
-const fs = require("fs");
-const path = require("path");
-const prompt = require("prompt-sync")();
+import docusign from "docusign-esign";
+import { sendEnvelope } from "./signingViaEmail.js";
+import fs from "fs";
+import path from "path";
+import jwtConfig from "./jwtConfig.json" assert { type: "json" };
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-const jwtConfig = require("./jwtConfig.json");
-const { ProvisioningInformation } = require("docusign-esign");
-const demoDocsPath = path.resolve(__dirname, "../demo_documents");
-console.log("demoDocsPath", demoDocsPath);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const demoDocsPath = path.resolve(__dirname, "./");
 const doc3File = "exhibit-b-client-terms.pdf";
-
 const SCOPES = ["signature", "impersonation"];
 
 function getConsent() {
@@ -22,11 +23,10 @@ function getConsent() {
     `scope=${urlScopes}&client_id=${jwtConfig.dsJWTClientId}&` +
     `redirect_uri=${redirectUri}`;
 
-  console.log(
-    "Open the following URL in your browser to grant consent to the application:"
-  );
+  console.log("Open the following URL in your browser to grant consent:");
   console.log(consentUrl);
   console.log("Consent granted? \n 1)Yes \n 2)No");
+
   let consentGranted = prompt("");
   if (consentGranted == "1") {
     return true;
@@ -39,7 +39,6 @@ function getConsent() {
 async function authenticate() {
   const jwtLifeSec = 10 * 60, // requested lifetime for the JWT is 10 min
     dsApi = new docusign.ApiClient();
-  console.log("dsApi", dsApi);
   dsApi.setOAuthBasePath(jwtConfig.dsOauthServer.replace("https://", "")); // it should be domain only.
   let rsaKey = fs.readFileSync(jwtConfig.privateKeyLocation);
 
@@ -67,7 +66,6 @@ async function authenticate() {
       basePath: `${userInfo.baseUri}/restapi`,
     };
   } catch (e) {
-    // console.log(e);
     let body = e.response && e.response.body;
     // Determine the source of the error
     if (body) {
@@ -88,20 +86,16 @@ async function authenticate() {
 }
 
 function getArgs(apiAccountId, accessToken, basePath) {
-  signerEmail = prompt("Enter the signer's email address: ");
-  signerName = prompt("Enter the signer's name: ");
-  ccEmail = prompt("Enter the carbon copy's email address: ");
-  ccName = prompt("Enter the carbon copy's name: ");
 
   const envelopeArgs = {
-    signerEmail: signerEmail,
-    signerName: signerName,
-    ccEmail: ccEmail,
-    ccName: ccName,
+    signerEmail: "marineshankar@gmail.com",
+    signerName: "Shankar",
+    ccEmail: "networkingshankar@gmail.com",
+    ccName: "NetworkingShankar",
     status: "sent",
     doc3File: path.resolve(demoDocsPath, doc3File),
   };
-  console.log('envelopeArgs', envelopeArgs);
+
   const args = {
     accessToken: accessToken,
     basePath: basePath,
@@ -119,10 +113,8 @@ async function main() {
     accountInfo.accessToken,
     accountInfo.basePath
   );
-  let envelopeId = signingViaEmail.sendEnvelope(args);
+  let envelopeId = sendEnvelope(args);
   console.log(envelopeId);
 }
 
 main();
-
-console.log("path",path.resolve(demoDocsPath, doc3File));

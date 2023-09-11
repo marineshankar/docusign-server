@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "JWT authentication with a single DocuSign code example",
   "main": "jwtConsole.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "relocate": "[ ! -d 'node_modules' ] || (rm -rf ../node_modules && mv -f node_modules ../)",
@@ -12,7 +13,7 @@
   "author": "DocuSign, Inc",
   "license": "ISC",
   "dependencies": {
-    "docusign-esign": "^6.1.0",
+    "docusign-esign": "^6.4.0",
     "fs": "^0.0.1-security",
     "fs-extra": "^11.1.0",
     "path": "^0.12.7",
